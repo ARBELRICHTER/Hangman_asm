@@ -17,24 +17,25 @@ stage5_pic db ' x-------x', 10, 13, ' |', '       ', '|', 10, 13, ' |', '       
 stage6_pic db ' x-------x', 10, 13, ' |', '      ', ' |', 10, 13, ' |', '       ', '0', 10, 13, ' |', '      ', '/', '|', '\', 10, 13, ' |', '      ', '/', ' ', '\', 10, 13, ' |', 10, 13, '$'
 
 ;messages
-correct_msg db 'correct!', 10, 13, '$'
-wrong_msg db 'wrong!', 10, 13, '$'
-lose_msg db 'You lost!', 10, 13, '$'
-win_msg db 'You won!', 10, 13, '$'
-already_guessed_msg db 'this letter was already guessed before. Try again.', 10, 13, '$' 
-guess_msg db 'guess a letter:', '$'
+correct_msg db 'Correct!', 10, 13, '$'
+wrong_msg db 'Wrong!', 10, 13, '$'
+lose_msg db '                        __                  __   ', 10, 13, ' __   __  ____  __ __  |  |   ____  _______|  |_ ', 10, 13, '|  |_|  |/  _ \|  |  | |  |  /  _ \/  ___/\    _|', 10, 13, ' \___   (  (_) )  |  | |  |_(  (_) )___ \  |  |  ', 10, 13, '  ___|  |\____/|____/  |____/\____/____ /  |__|  ', 10, 13, ' /_____/', 10, 13, '$'
+win_msg db ' __   __  ____  __ __   _  _  _   ___  _____', 10, 13, '|  |_|  |/  _ \|  |  | | || || |/  _ \/     \  ', 10, 13, ' \___   (  |_| )  |  | | || || (  |_| )  |  | ', 10, 13, '  ___|  |\____/|____/  |_______/\____/|__| _|', 10, 13, ' /_____/', 10, 13, '$'
+already_guessed_msg db 'This letter was already guessed before. Try again.', 10, 13, '$' 
+guess_msg db 'Guess a letter:', '$'
 notalpha_msg db 'You need to guess a letter. Try again.', 10, 13, '$'
 the_word_was_msg db 'The word was: ', '$'
 letters_already_guessed_msg db 'Letters you guessed: ', '$'
 hangman_msg db ' _    _', 10, 13,  '| |  | |', 10, 13, '| |__| | __ _ _ __   __ _ _ __ ___   __ _ _ __  ', 10, 13, '|  __  |/ _` | _  \ / _` | _ ` _  \ / _` | _  \ ', 10, 13, '| |  | | (_| | | | | (_| | | | | | | (_| | | | |', 10, 13, '|_|  |_|\__,_|_| |_|\__, |_| |_| |_|\__,_|_| |_|', 10, 13, '                     __/ |                      ', 10, 13, '                    |___/', 10, 13, '$'
-beginning_msg db 'WELCOME TO THE GAME HANGMAN!', 10, 13, ' These are the rules: there is a hidden word, and you need to guess what it      is. In each turn you may guess one letter. You have 6 tries, good luck!', 10, 13, '*if you want to exit the game, press backspace.', 10, 13, 10, 13, '                         -press any key to begin-', 10, 13, '$'
-invalid_input_msg db 'Please enter a number from 1 to 9: ', '$'
+invalid_input_msg db 'Please pick a random number from 0 to 9: ', '$'
+play_again_msg db 'Do you want to play again?', 10, 13, 'Press the space key if you do, press any other key to exit the game.', '$'
+beginning_msg db 'WELCOME TO THE GAME HANGMAN!', 10, 13, ' These are the rules: There is a hidden word that has some relation to odyssey, and you need to guess what it is. In each turn you may guess one letter. You have 6 tries, good luck!', 10, 13, '*if you want to exit the game, press backspace.', 10, 13, 10, 13, '                         -press any key to begin-', 10, 13, '$'
 
 ;arrays
 lines_var db 30 dup (?);var of lines and spaces
-word_list db 4, "hang", 3, "man", 5, "hello", 11, 'personality', 6, 'father', 6, 'orange', 5, 'shark', 7, 'partner', 8, 'assembly', '$'
+word_list db 5, "cyber", 7, 'program', 8, 'assembly', 9, 'algorithm', 8, 'register', 8, 'computer', 10, 'university',  6, 'course', 7, 'project', 8, 'homework', '$'
 letter_guessed_list db 28 dup (?)
-sorted_arr db 30 dup (?) ;the array will contain all word sorted
+;sorted_arr db 30 dup (?) ;the array will contain all word sorted
 
 ;db variables
 
@@ -197,11 +198,8 @@ CODESEG
 			mov ax, [bx+si]; al contains each letter at the time
 			mov ah, [bp+6]; ah contains the correctly guessed letter
 			cmp al, ah
-;			mov dx, [bp+10]; dx 
-;			mov [bp+10], al ;contains the counter
 			mov [save_bx], bx
-;			mov [word ptr bp+10], bx; bp+10 holds bx for now
-			mov bx, 0
+ 			mov bx, 0
 			je right_index
 			jmp next_letter
 			right_index:;the index of the letter is bx
@@ -371,8 +369,33 @@ CODESEG
 ; --------------------------
 	jmp begin
 	
+	leave1:
+	jmp exit
+	
 	exit_stp:
 	jmp exit
+	
+	pre_begin:
+	mov [lines_var], 0
+	mov cx, 28
+	xor dx, dx
+	mov bx, 0
+	mov si, offset letter_guessed_list
+	mov di, offset lines_var
+	empty_loop:
+		mov [bx+si], dx
+		mov [bx+di], dx
+		inc bx
+;	mov letter_guessed_list, 0
+	loop empty_loop
+	
+	mov [amount_of_letters_guessed], 0
+	mov [correct_letters_guessed_cnt], 0
+	mov [final_counter], 0
+	xor ax, ax
+	xor bx, bx
+	xor cx, cx
+	xor dx, dx
 	
 	begin:
 	;clear screen:
@@ -389,29 +412,49 @@ CODESEG
 	mov ah, 1
 	int 21h
 	mov ah, 0
-	cmp ax, 9; not exiting the program
-	je exit_stp
+;	cmp ax, 8
+;	je exit_stp
 
 	invalid_input:
 	call new_line
 	mov dx, offset invalid_input_msg
 	mov ah, 9
 	int 21h
-	
-	take_letter:
+
 	mov ah, 1
 	int 21h
+;	cmp ax, 8
+
 	sub al, 30h
 	mov ah, 0
+;	je leave1
 	cmp ax, 9
 	jg invalid_input
-	cmp ax, 0
-	je invalid_input
+;	cmp ax, 0
+;	je invalid_input
+	inc ax
 	mov [random_number], ax
 	push offset the_word
 	push [random_number]
 	push offset word_list
 	call choose_word
+;	mov ah, 1
+;	int 21h
+;	cmp al, 97
+;	jl invalid_input
+;	cmp al, 122
+;	jg invalid_input
+;	sub al, 96
+;	mov ah, 0
+;	cmp ax, 26
+;	jg invalid_input
+;	cmp ax, 0
+;	je invalid_input
+;	mov [random_number], ax
+;	push offset the_word
+;	push [random_number]
+;	push offset word_list
+;	call choose_word
 	
 	mov ax, 3
 	int 10h
@@ -451,7 +494,7 @@ CODESEG
 		moving_on:
 		mov [letter_guessed], ax
 		call convinient_clear
-		call new_line
+;		call new_line
 		
 		;lowercasing the letter
 		push [letter_guessed]
@@ -529,7 +572,6 @@ CODESEG
 		mov ah, 9
 		int 21h
 		jmp calling
-		
 		updating:
 		;updating the letter_guessed_list 
 		push [letter_guessed]
@@ -550,15 +592,16 @@ CODESEG
 		mov dx, offset wrong_msg
 		mov ah, 9
 		int 21h
-		call new_line
+;		call new_line
 		jmp next_guess
 		
 		;you're here if the letter is in the word
 		correct:
+			
 			mov dx, offset correct_msg
 			mov ah, 9
 			int 21h
-			call new_line
+	;		call new_line
 			push offset lines_var; updating lines_var with the new letter
 			push offset the_word
 			push [letter_guessed]
@@ -667,7 +710,8 @@ CODESEG
 	mov dx, offset win_msg
 	mov ah, 9
 	int 21h
-	jmp exit
+;	call new_line
+	jmp endgame
 	continue_loop:	
 	call stage
 	jmp finaloop
@@ -675,19 +719,32 @@ CODESEG
 	lose:
 	push offset stage6_pic
 	call stage
-
+	
+	mov dx, offset lose_msg
+	mov ah, 9
+	int 21h
 	mov dx, offset the_word_was_msg
 	mov ah, 9
 	int 21h
 	
 	mov dx, offset the_word
 	mov ah, 9
-	int 21h
-	
+	int 21h	
 	call new_line
-	mov dx, offset lose_msg
+
+	endgame:
+
+;	call new_line
+	mov dx, offset play_again_msg
 	mov ah, 9
 	int 21h
+	mov ah, 1
+	int 21h
+	cmp al, 32
+	mov ax, 3
+	int 10h
+	jne exit
+	jmp pre_begin
 
 ; --------------------------
 	
